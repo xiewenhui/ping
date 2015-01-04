@@ -31,7 +31,7 @@ func TestPing(t *testing.T) {
   var wg sync.WaitGroup
 
   cocurrent := 2
-  ping_time_out := 3
+  timeOutMs := 300
   tokens := make(chan int, cocurrent)
 
   start := time.Now().Unix()
@@ -43,13 +43,13 @@ func TestPing(t *testing.T) {
     wg.Add(1)
 
     ip := strings.Trim(ips[i], "\n")
-    go func() {
+    go func(h string) {
       defer wg.Done()
-      alive := Ping(ip, ping_time_out)
-      log.Printf("[%v]:[%v]\n", ip, alive)
+      alive := Ping(h, timeOutMs)
+      log.Printf("[%v]:[%v]\n", h, alive)
       // time.Sleep(3000 * time.Millisecond)
       <- tokens
-    }()
+    }(ip)
   }
   wg.Wait()
 
