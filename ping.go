@@ -9,6 +9,7 @@ package ping
 import (
 	"bytes"
 	"errors"
+	"github.com/golang/glog"
 	"net"
 	"os"
 	"time"
@@ -120,18 +121,21 @@ func parseICMPEcho(b []byte) (*icmpEcho, error) {
 	return p, nil
 }
 
-func Ping(address string, timeout int) (alive bool) {
-	err := Pinger(address, timeout)
+func Ping(address string, timeoutMs int) (alive bool) {
+	err := Pinger(address, timeoutMs)
 	alive = err == nil
+	if err != nil {
+		glog.Warningf("Ping failed [%s],[%v]", address, err)
+	}
 	return
 }
 
-func Pinger(address string, timeout int) (err error) {
-	c, err := net.Dial("ip4:icmp", address)
+func Pinger(address string, timeoutMs int) (err error) {
+	c, err := net.DialTimeout("ip4:icmp", address, time.Duration(timeoutMs)*time.Millisecond)
 	if err != nil {
 		return
 	}
-	c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
+	c.SetDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond))
 	defer c.Close()
 
 	typ := icmpv4EchoRequest
